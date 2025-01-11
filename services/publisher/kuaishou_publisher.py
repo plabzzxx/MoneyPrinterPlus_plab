@@ -144,7 +144,8 @@ def kuaishou_publisher(driver, video_file, text_file):
         time.sleep(1)
 
     # 发布
-    publish_button = driver.find_element(By.XPATH, '//button[@type="button"]/span[text()="发布"]')
+    wait = WebDriverWait(driver, 10)
+    publish_button = wait.until(EC.presence_of_element_located((By.XPATH, '//div[contains(@class, "_button_") and contains(@class, "_button-primary_")]//div[text()="发布"]')))
     auto_publish = st.session_state.get('video_publish_auto_publish')
     if auto_publish:
         print("auto publish")

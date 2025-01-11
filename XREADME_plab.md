@@ -2,3 +2,16 @@
 
 ## commit：
 - V0 拉取后首次提交 添加plabnote
+- V1.0 进行了本地测试（批量发布功能），修改了快手发布按钮的元素定位，现测试可用
+
+
+
+
+# 启动
+1.以debug模式启动chrome 
+chrome --remote-debugging-port=9222
+2.运行
+streamlit run gui.py
+3. 端口占用问题，如果遇到 "Port 8501 is already in use" 错误，可以通过以下方法解决：
+netstat -ano | findstr 8501
+taskkill /F /PID <PID>
