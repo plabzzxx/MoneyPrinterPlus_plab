@@ -28,7 +28,7 @@ import yaml
 
 from tools.file_utils import read_yaml, save_yaml
 
-app_title = "AI搞钱工具"
+app_title = "普徕科技AI"
 
 local_audio_tts_providers = ['chatTTS', 'GPTSoVITS']
 local_audio_recognition_providers = ['fasterwhisper', ]

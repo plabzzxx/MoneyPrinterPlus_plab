@@ -26,6 +26,7 @@ import traceback
 import streamlit as st
 import logging
 from datetime import datetime
+import time
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -53,11 +54,29 @@ def publish_to_platform(platform, driver, video_file, text_file):
     发布到指定平台的封装函数
     """
     try:
-        globals()[platform + '_publisher'](driver, video_file, text_file)  # 动态调用对应平台的发布函数
+        # 读取文本内容并添加文件名(去掉后缀)
+        with open(text_file, 'r', encoding='utf-8') as f:
+            text_content = f.read().strip()
+            temp_text_file = text_file + '.temp'
+            # 获取不带后缀的文件名
+            filename_without_ext = os.path.splitext(os.path.basename(video_file))[0]
+            with open(temp_text_file, 'w', encoding='utf-8') as tf:
+                tf.write(f"{text_content} {filename_without_ext}")
+            
+        globals()[platform + '_publisher'](driver, video_file, temp_text_file)
+        # 删除临时文件
+        os.remove(temp_text_file)
     except Exception as e:
         print(platform, "got error")
-        traceback.print_exc()  # 打印完整的异常跟踪信息
+        traceback.print_exc()
         print(e)
+    finally:
+        # 确保关闭当前标签页
+        if driver:
+            for handle in driver.window_handles[1:]:
+                driver.switch_to.window(handle)
+                driver.close()
+            driver.switch_to.window(driver.window_handles[0])
     if video_file:
         save_last_published_file_name(os.path.basename(video_file))
 
@@ -73,21 +92,35 @@ def batch_publish_files():
     failed = 0
     failed_files = []
     
+    # 可配置的延迟时间(秒)【plabmark】
+    delay_time = st.session_state.get("video_publish_delay_time", 1)
+    
     video_dir = get_must_session_option('video_publish_content_dir', "请设置视频发布内容")
     text_file = get_must_session_option('video_publish_content_text', "请选择要发布的内容文件")
     video_files = list_files(video_dir, '.mp4')
+    
+    # 按数字顺序排序文件
+    def get_file_number(filename):
+        # 从文件名中提取数字部分
+        name = os.path.splitext(os.path.basename(filename))[0]
+        try:
+            return int(name)
+        except ValueError:
+            return filename  # 如果转换失败，返回原文件名
+    
+    # 对文件列表进行排序
+    video_files.sort(key=get_file_number)
     
     if not video_files:
         st.error("所选目录下没有找到视频文件")
         return
     
-    # 创建进度条
-    progress_bar = st.progress(0)
-    status_text = st.empty()
-    
+    total_files = len(video_files)
     for index, video_file in enumerate(video_files):
+        current_file = os.path.basename(video_file)
+        print(f"\n处理进度: [{index + 1}/{total_files}] 当前文件: {current_file}")
+        
         try:
-            status_text.text(f"正在处理: {os.path.basename(video_file)}")
             driver = init_driver()
             
             # 发布到已启用的平台
@@ -104,24 +137,29 @@ def batch_publish_files():
                 publish_to_platform('shipinhao', driver, video_file, text_file)
             
             success += 1
+            print(f"✓ 处理成功: {current_file}")
             driver.quit()
+            
+            time.sleep(delay_time)
             
         except Exception as e:
             failed += 1
             failed_files.append(os.path.basename(video_file))
             logging.error(f"处理视频 {video_file} 失败: {str(e)}")
+            print(f"✗ 处理失败: {current_file}")
             traceback.print_exc()
         
-        # 更新进度
-        progress = (index + 1) / len(video_files)
-        progress_bar.progress(progress)
-    
     # 任务完成后的统计信息
     completion_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    status_text.text(f"任务完成！成功: {success} 个，失败: {failed} 个")
+    print(f"\n任务完成！时间: {completion_time}")
+    print(f"总计: {total_files} 个文件")
+    print(f"成功: {success} 个")
+    print(f"失败: {failed} 个")
     
     if failed_files:
-        st.error("失败的文件：\n" + "\n".join(failed_files))
+        print("\n失败的文件：")
+        for f in failed_files:
+            print(f"- {f}")
     
     # 记录最后发布的文件
     if video_files:

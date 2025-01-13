@@ -264,6 +264,10 @@ with video_container:
         st.text_input(label=tr("Driver Debugger Address"), value="127.0.0.1:2828", key="video_publish_debugger_address")
     st.text_input(label=tr("Video Content Dir"), key="video_publish_content_dir",
                   value=get_content_location(), on_change=set_content_location, args=('video_publish_content_dir',))
+    # 添加延迟时间配置
+    st.number_input(label=tr("Delay Time (seconds)"), key="video_publish_delay_time",
+                    min_value=0, value=1, step=1,
+                    help=tr("Set delay time between processing videos"))
     video_dir = st.session_state.get("video_publish_content_dir", "")
     if video_dir and os.path.exists(video_dir):
         video_files = list_files(video_dir, '.mp4')
