@@ -24,6 +24,8 @@
 import os
 import traceback
 import streamlit as st
+import logging
+from datetime import datetime
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -63,21 +65,73 @@ def publish_to_platform(platform, driver, video_file, text_file):
 def save_last_published_file_name(filename):
     write_to_file(filename, last_published_file_name)
 
-def publish_file():
-    driver = init_driver()
-    video_file = get_must_session_option('video_publish_content_file', "请选择要发布的视频文件")
+def batch_publish_files():
+    """
+    批量处理目录下的所有视频文件
+    """
+    success = 0
+    failed = 0
+    failed_files = []
+    
+    video_dir = get_must_session_option('video_publish_content_dir', "请设置视频发布内容")
     text_file = get_must_session_option('video_publish_content_text', "请选择要发布的内容文件")
-    if st.session_state.get("video_publish_enable_douyin"):
-        publish_to_platform('douyin', driver, video_file, text_file)
+    video_files = list_files(video_dir, '.mp4')
+    
+    if not video_files:
+        st.error("所选目录下没有找到视频文件")
+        return
+    
+    # 创建进度条
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    
+    for index, video_file in enumerate(video_files):
+        try:
+            status_text.text(f"正在处理: {os.path.basename(video_file)}")
+            driver = init_driver()
+            
+            # 发布到已启用的平台
+            if st.session_state.get("video_publish_enable_douyin"):
+                publish_to_platform('douyin', driver, video_file, text_file)
+            
+            if st.session_state.get("video_publish_enable_kuaishou"):
+                publish_to_platform('kuaishou', driver, video_file, text_file)
+                
+            if st.session_state.get("video_publish_enable_xiaohongshu"):
+                publish_to_platform('xiaohongshu', driver, video_file, text_file)
+                
+            if st.session_state.get("video_publish_enable_shipinhao"):
+                publish_to_platform('shipinhao', driver, video_file, text_file)
+            
+            success += 1
+            driver.quit()
+            
+        except Exception as e:
+            failed += 1
+            failed_files.append(os.path.basename(video_file))
+            logging.error(f"处理视频 {video_file} 失败: {str(e)}")
+            traceback.print_exc()
+        
+        # 更新进度
+        progress = (index + 1) / len(video_files)
+        progress_bar.progress(progress)
+    
+    # 任务完成后的统计信息
+    completion_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    status_text.text(f"任务完成！成功: {success} 个，失败: {failed} 个")
+    
+    if failed_files:
+        st.error("失败的文件：\n" + "\n".join(failed_files))
+    
+    # 记录最后发布的文件
+    if video_files:
+        save_last_published_file_name(os.path.basename(video_files[-1]))
 
-    if st.session_state.get("video_publish_enable_kuaishou"):
-        publish_to_platform('kuaishou', driver, video_file, text_file)
-
-    if st.session_state.get("video_publish_enable_xiaohongshu"):
-        publish_to_platform('xiaohongshu', driver, video_file, text_file)
-
-    if st.session_state.get("video_publish_enable_shipinhao"):
-        publish_to_platform('shipinhao', driver, video_file, text_file)
+def publish_file():
+    """
+    保留原有的单文件发布功能，但改为调用批量处理函数
+    """
+    batch_publish_files()
 
 def publish_all():
     driver = init_driver()

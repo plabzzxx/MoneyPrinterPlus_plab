@@ -31,6 +31,7 @@ from pages.common import common_ui
 from services.publisher.open_test import start_all_pages
 from services.publisher.publish_video import publish_all, publish_file
 from tools.tr_utils import tr
+from tools.file_utils import list_files
 import threading
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 
@@ -263,9 +264,13 @@ with video_container:
         st.text_input(label=tr("Driver Debugger Address"), value="127.0.0.1:2828", key="video_publish_debugger_address")
     st.text_input(label=tr("Video Content Dir"), key="video_publish_content_dir",
                   value=get_content_location(), on_change=set_content_location, args=('video_publish_content_dir',))
-    video_list = get_file_map_from_dir(st.session_state["video_publish_content_dir"], ".mp4")
-    st.selectbox(label=tr("Video File"), key="video_publish_content_file",
-                 options=video_list, format_func=lambda x: video_list[x])
+    video_dir = st.session_state.get("video_publish_content_dir", "")
+    if video_dir and os.path.exists(video_dir):
+        video_files = list_files(video_dir, '.mp4')
+        if video_files:
+            st.info(f"目录中共找到 {len(video_files)} 个视频文件")
+        else:
+            st.warning("目录中未找到视频文件")
     file_list = get_file_map_from_dir(st.session_state["video_publish_content_dir"], ".txt")
     st.selectbox(label=tr("Text File"), key="video_publish_content_text",
                  options=file_list, format_func=lambda x: file_list[x])
