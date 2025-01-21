@@ -10,6 +10,7 @@
 - V1.2 备份了03_auto_publish copy.py 下一步将开始对原项目修改，当前还未做任何其他修改
 - V1.3 实现自动批量上传。实现了对指定文件夹内的全部视频自动上传到快手 修改了03_auto_publish 和services\publisher\publish_video.py
 - V1.4 完善可批量上传的功能，目前只支持快手。
+- V1.5 批量上传的功能增加支持视频号。
 
 
 # 启动

@@ -68,7 +68,7 @@ def shipinhao_publisher(driver, video_file, text_file):
     # 替换英文标点符号
     title_text = re.sub(r'[.!?,:;"\'\-\(\)]', '', title_text)
     # 替换中文标点符号
-    title_text = re.sub(r'[。！？，：、；“’\-（）]', '', title_text)
+    title_text = re.sub(r'[。！？，：、；"\'\-（）]', '', title_text)
 
     # 标题有20字长度限制
     if len(common_title + title_text) <= 20:
@@ -153,3 +153,4 @@ def shipinhao_publisher(driver, video_file, text_file):
     if auto_publish:
         print("auto publish")
         publish_button.click()
+        time.sleep(10)  # 点击发表后等待5秒
