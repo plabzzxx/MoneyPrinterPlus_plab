@@ -29,12 +29,30 @@ from selenium import webdriver
 from selenium.webdriver import Keys, ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import streamlit as st
 
 import time
 
 from config.config import shipinhao_site
 from tools.file_utils import read_head, read_file_with_extra_enter
+
+
+def wait_for_video_upload(driver):
+    """等待视频上传完成"""
+    try:
+        # 等待删除按钮出现，说明视频上传完成
+        WebDriverWait(driver, 120).until(  # 给2分钟的上传时间
+            EC.presence_of_element_located((
+                By.XPATH, 
+                '//div[@class="finder-tag-wrap"]/div[@class="tag-inner" and text()="删除"]'
+            ))
+        )
+        print("视频上传完成")
+        return True
+    except Exception as e:
+        print(f"等待视频上传超时: {str(e)}")
+        return False
 
 
 def shipinhao_publisher(driver, video_file, text_file):
@@ -54,8 +72,9 @@ def shipinhao_publisher(driver, video_file, text_file):
     # 上传视频按钮
     file_input = driver.find_element(By.XPATH, '//input[@type="file"]')
     file_input.send_keys(video_file)
-    time.sleep(10)  # 等待
-    # 等待视频上传完毕
+    # 等待视频上传完成
+    if not wait_for_video_upload(driver):
+        raise Exception("视频上传失败或超时")
 
     # 设置标题
     title = driver.find_element(By.XPATH, '//input[@placeholder="概括视频主要内容，字数建议6-16个字符"]')
