@@ -27,8 +27,8 @@ from tools.tr_utils import tr
 
 
 def common_ui():
-    st.set_page_config(page_title="MoneyPrinterPlus",
-                       page_icon=":pretzel:",
+    st.set_page_config(page_title="普徕科技AI",
+                       page_icon=":🤖",
                        layout="wide",
                        initial_sidebar_state="auto",
                        menu_items={
@@ -42,9 +42,9 @@ def common_ui():
     st.sidebar.page_link("pages/02_mix_video.py", label=tr("Mix Video"))
     st.sidebar.page_link("pages/02_merge_video.py", label=tr("Merge Video"))
     st.sidebar.page_link("pages/03_auto_publish.py", label=tr("Video Auto Publish"))
-    st.sidebar.markdown(
-        '<a style="text-align: center;padding-top: 0rem;" href="http://www.flydean.com">Developed by 程序那些事</a>',
-        unsafe_allow_html=True)
+    # st.sidebar.markdown(
+    #     '<a style="text-align: center;padding-top: 0rem;" href="http://www.flydean.com">Developed by 程序那些事</a>',
+    #     unsafe_allow_html=True)
 
     with st.sidebar:
         st.markdown('---')

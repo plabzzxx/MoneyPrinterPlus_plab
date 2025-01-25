@@ -39,6 +39,7 @@ from services.publisher.kuaishou_publisher import kuaishou_publisher
 from services.publisher.shipinhao_publisher import shipinhao_publisher
 from tools.file_utils import write_to_file, list_files, read_head
 from tools.utils import get_must_session_option
+from tools.log_utils import log_publish_error
 
 last_published_file_name = 'last_published_cn.txt'
 
@@ -70,6 +71,7 @@ def publish_to_platform(platform, driver, video_file, text_file):
         print(platform, "got error")
         traceback.print_exc()
         print(e)
+        log_publish_error(platform, video_file, e)
     finally:
         # 确保关闭当前标签页
         if driver:
