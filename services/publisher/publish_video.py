@@ -55,14 +55,26 @@ def publish_to_platform(platform, driver, video_file, text_file):
     发布到指定平台的封装函数
     """
     try:
-        # 读取文本内容并添加文件名(去掉后缀)
-        with open(text_file, 'r', encoding='utf-8') as f:
-            text_content = f.read().strip()
-            temp_text_file = text_file + '.temp'
-            # 获取不带后缀的文件名
+        use_common = st.session_state.get('video_publish_use_common_config')
+        if use_common:
+            # 使用通用配置
+            title = st.session_state.get('video_publish_title', '').strip()
+            extra_text = st.session_state.get('video_publish_extra_text', '').strip()
             filename_without_ext = os.path.splitext(os.path.basename(video_file))[0]
+            
+            # 创建临时文件，写入组织好的内容
+            temp_text_file = text_file + '.temp'
             with open(temp_text_file, 'w', encoding='utf-8') as tf:
-                tf.write(f"{text_content} {filename_without_ext}")
+                # 手动控制空格，确保只有一个空格
+                tf.write(f"{title} {filename_without_ext}\n{extra_text}")
+        else:
+            # 不使用通用配置，保持原有逻辑
+            with open(text_file, 'r', encoding='utf-8') as f:
+                text_content = f.read().strip()
+                temp_text_file = text_file + '.temp'
+                filename_without_ext = os.path.splitext(os.path.basename(video_file))[0]
+                with open(temp_text_file, 'w', encoding='utf-8') as tf:
+                    tf.write(f"{text_content} {filename_without_ext}")
             
         globals()[platform + '_publisher'](driver, video_file, temp_text_file)
         # 删除临时文件

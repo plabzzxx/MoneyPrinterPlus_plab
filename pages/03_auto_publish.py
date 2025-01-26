@@ -301,6 +301,20 @@ with video_config_container:
             st.text_input(label=tr("Tags"), key="video_publish_tags",
                           value=get_tags('common'), on_change=set_tags,
                           args=('common', 'video_publish_tags'))
+        
+        # 添加视频标题和额外文本输入框
+        st.text_area(
+            label=tr("Video Title"),
+            key="video_publish_title",
+            help=tr("Input video title, will auto append video filename"),
+            height=100
+        )
+        st.text_area(
+            label=tr("Extra Text"),
+            key="video_publish_extra_text", 
+            help=tr("Input extra text content"),
+            height=200
+        )
     st.subheader(tr("Douyin Config"))
     st.checkbox(label=tr("Enable douyin"), key="video_publish_enable_douyin",
                 value=get_enable("douyin"), on_change=set_enable, args=('douyin', 'video_publish_enable_douyin'))
